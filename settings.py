@@ -20,5 +20,5 @@ NOW_PLAYING = COMMAND_PREFIX + "commands"
 BASE_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-REDIS_URL = os.getenv('REDISTOGO_URL')
+REDIS_URL = os.getenv('REDIS_URL')
 redis = redis.from_url(REDIS_URL)
