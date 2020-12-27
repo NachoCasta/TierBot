@@ -1,7 +1,10 @@
 import os
-from dotenv import load_dotenv
 import redis
-load_dotenv()
+
+if not os.getenv("DISCORD_BOT_TOKEN"):
+    from dotenv import load_dotenv
+    load_dotenv()
+
 
 # The prefix that will be used to parse commands.
 # It doesn't have to be a single character!
