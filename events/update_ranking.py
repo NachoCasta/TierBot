@@ -27,14 +27,14 @@ class ExampleEvent(BaseEvent):
                         break
                 else:
                     continue
-                print("    ", user)
+                print("     ", user)
                 new_role = discord.utils.get(guild.roles, name=tier)
                 for role in user.roles:
                     if role.name == new_role.name:
                         break
                     if role.name in TIERS and role.name != new_role.name:
                         await user.remove_roles(role)
-                        print(f"    Rol {role.name} removido a {user.name}.")
+                        print(f"     Rol {role.name} removido a {user.name}.")
                 else:
                     await user.add_roles(new_role)
-                    print(f"    Rol {new_role.name} agregado a {user.name}")
+                    print(f"     Rol {new_role.name} agregado a {user.name}")

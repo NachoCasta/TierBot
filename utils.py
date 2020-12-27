@@ -7,6 +7,7 @@ from collections import defaultdict
 from discord import HTTPException
 from emoji import emojize
 from time import time
+from ilock import ILock
 
 import settings
 
@@ -78,38 +79,41 @@ async def try_upload_file(client, channel, file_path, content=None,
 ACTIVITY_LOG_PATH = join(settings.BASE_DIR, "files", "activity_log.json")
 
 
+def read_activity_log(guild):
+    string = settings.redis.get(str(guild))
+    if not string:
+        return {}
+    data = json.loads(string)
+    return data
+
+
+def save_activity_log(guild, data):
+    string = json.dumps(data)
+    settings.redis.set(str(guild), string)
+
+
 def add_activity_log(member, before, after):
-    if before.channel != after.channel and not member.bot:
-        with open(ACTIVITY_LOG_PATH) as json_file:
-            activity_log = json.load(json_file)
-        name = str(member)
-        guild_id = str(member.guild.id)
-        if guild_id not in activity_log:
-            activity_log[guild_id] = {}
-        if name not in activity_log[guild_id]:
-            activity_log[guild_id][name] = []
-        log = {"timestamp": time()}
-        if after.channel:
-            # Se conecto a un canal
-            log["type"] = "JOINED"
-            print(f"{member} se conectó a {after.channel.name}")
-        else:
-            log["type"] = "LEFT"
-            print(f"{member} se enojó")
-            # Se desconecto
-        activity_log[guild_id][name].append(log)
-        with open(ACTIVITY_LOG_PATH, "w") as json_file:
-            json.dump(activity_log, json_file, indent=4)
+    if not member.bot:
+        with ILock(str(member.guild.id)):
+            activity_log = read_activity_log(member.guild.id)
+            name = str(member)
+            if name not in activity_log:
+                activity_log[name] = []
+            log = {"timestamp": time()}
+            if after.channel and not after.afk and not after.self_deaf and not after.self_mute:
+                # Se conecto a un canal
+                log["type"] = "JOINED"
+                print(f"{member} se conectó a {after.channel.name}")
+            else:
+                # Se desconecto
+                log["type"] = "LEFT"
+                print(f"{member} se enojó")
+            activity_log[name].append(log)
+            save_activity_log(member.guild.id, activity_log)
 
 
 def get_activity_ranking(guild):
-    guild = str(guild)
-    with open(ACTIVITY_LOG_PATH) as json_file:
-        data = json.load(json_file)
-        if guild in data:
-            activity_log = data[guild]
-        else:
-            activity_log = {}
+    activity_log = read_activity_log(guild)
     members = defaultdict(int)
     for user, logs in activity_log.items():
         last_type = "LEFT"
@@ -132,9 +136,7 @@ def pretty_time_delta(seconds):
     days, seconds = divmod(seconds, 86400)
     hours, seconds = divmod(seconds, 3600)
     minutes, seconds = divmod(seconds, 60)
-    string = ""
-    if seconds > 0:
-        string = f"{seconds} segundos."
+    string = f"{seconds} segundos."
     if minutes > 0:
         string = f"{minutes} minutos y {string}"
     if hours > 0:
