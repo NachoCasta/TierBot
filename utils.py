@@ -133,7 +133,14 @@ def add_activity_log(member, before, after):
                 print(f"{member} se conectó a {after.channel.name}")
             else:
                 print(f"{member} se enojó")
-            activity_log[name].append(log)
+            new = True
+            if activity_log[name]:
+                last_log = activity_log[name][-1]
+                if last_log["type"] == log["type"]:
+                    new = False
+            if new:
+                print("Agregado")
+                activity_log[name].append(log)
             save_activity_log(member.guild.id, activity_log)
 
 
