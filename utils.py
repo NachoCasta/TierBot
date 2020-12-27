@@ -92,6 +92,35 @@ def save_activity_log(guild, data):
     settings.redis.set(str(guild), string)
 
 
+def get_log_type(status):
+    if status.channel and not status.afk and not status.self_deaf and not status.self_mute:
+        return "JOINED"
+    else:
+        return "LEFT"
+
+
+def get_log(status):
+    return {"timestamp": time(), "type": get_log_type(status)}
+
+
+def log_current_users_activity(client):
+    for guild in client.guilds:
+        print(guild)
+        with ILock(str(guild.id)):
+            activity_log = read_activity_log(guild.id)
+            for member, logs in activity_log.items():
+                log = logs[-1].copy()
+                log["type"] = "LEFT"
+                activity_log[member].append(log)
+            for member in guild.members:
+                if not member.bot:
+                    if member.voice:
+                        print(f"{member} está conectado.")
+                        log = get_log(member.voice)
+                        activity_log[str(member)].append(log)
+            save_activity_log(guild.id, activity_log)
+
+
 def add_activity_log(member, before, after):
     if not member.bot:
         with ILock(str(member.guild.id)):
@@ -99,14 +128,10 @@ def add_activity_log(member, before, after):
             name = str(member)
             if name not in activity_log:
                 activity_log[name] = []
-            log = {"timestamp": time()}
-            if after.channel and not after.afk and not after.self_deaf and not after.self_mute:
-                # Se conecto a un canal
-                log["type"] = "JOINED"
+            log = get_log(after)
+            if log["type"] == "JOINED":
                 print(f"{member} se conectó a {after.channel.name}")
             else:
-                # Se desconecto
-                log["type"] = "LEFT"
                 print(f"{member} se enojó")
             activity_log[name].append(log)
             save_activity_log(member.guild.id, activity_log)

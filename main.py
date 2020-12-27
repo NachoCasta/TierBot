@@ -8,7 +8,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from events.base_event import BaseEvent
 from events import *
 from multiprocessing import Process
-from utils import add_activity_log
+from utils import add_activity_log, log_current_users_activity
 
 # Set to remember if the bot is already running, since on_ready may be called
 # more than once on reconnects
@@ -24,7 +24,9 @@ sched = AsyncIOScheduler()
 def main():
     # Initialize the client
     print("Starting up...")
-    client = discord.Client()
+    intents = discord.Intents.default()
+    intents.members = True
+    client = discord.Client(intents=intents)
 
     # Define event handlers for the client
     # on_ready may be called multiple times in the event of a reconnect,
@@ -54,7 +56,10 @@ def main():
         sched.start()
         print(f"{n_ev} events loaded", flush=True)
 
+        log_current_users_activity(client)
+
     # The message handler for both new message and edits
+
     async def common_handle_message(message):
         text = message.content
         if text.startswith(settings.COMMAND_PREFIX) and text != settings.COMMAND_PREFIX:
