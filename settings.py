@@ -5,7 +5,7 @@ import os
 COMMAND_PREFIX = "!"
 
 # The bot token. Keep this secret!
-BOT_TOKEN = "Get this from https://discord.com/developers/applications"
+BOT_TOKEN = "NzkyNDc2MDA0MjE1OTQ3MjY0.X-eQyg.0nGOXE3tWqQrkc2v0SFuBmm5oXU"
 
 # The now playing game. Set this to anything false-y ("", None) to disable it
 NOW_PLAYING = COMMAND_PREFIX + "commands"
