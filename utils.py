@@ -92,15 +92,15 @@ def save_activity_log(guild, data):
     settings.redis.set(str(guild), string)
 
 
-def get_log_type(status):
-    if status.channel and not status.afk and not status.self_deaf and not status.self_mute:
+def get_log_type(status, idle=False):
+    if status.channel and not status.afk and not status.self_deaf and not status.self_mute and not idle:
         return "JOINED"
     else:
         return "LEFT"
 
 
-def get_log(status):
-    return {"timestamp": time(), "type": get_log_type(status)}
+def get_log(status, idle=False):
+    return {"timestamp": time(), "type": get_log_type(status, idle)}
 
 
 def log_current_users_activity(client):
@@ -117,6 +117,8 @@ def log_current_users_activity(client):
                     if member.voice:
                         print(f"{member} está conectado.")
                         log = get_log(member.voice)
+                        if str(member) not in activity_log:
+                            activity_log[str(member)] = []
                         activity_log[str(member)].append(log)
             save_activity_log(guild.id, activity_log)
 
@@ -128,7 +130,7 @@ def add_activity_log(member, before, after):
             name = str(member)
             if name not in activity_log:
                 activity_log[name] = []
-            log = get_log(after)
+            log = get_log(after, idle=str(member.status) == "idle")
             if log["type"] == "JOINED":
                 print(f"{member} se conectó a {after.channel.name}")
             else:

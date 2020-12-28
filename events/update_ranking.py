@@ -20,14 +20,12 @@ class ExampleEvent(BaseEvent):
         for guild in client.guilds:
             ranking = get_activity_ranking(guild.id)
             for i, (name, _) in enumerate(ranking):
-                print(i, name)
                 tier = get_tier(i)
                 for user in guild.members:
                     if str(user) == name:
                         break
                 else:
                     continue
-                print("     ", user)
                 new_role = discord.utils.get(guild.roles, name=tier)
                 for role in user.roles:
                     if role.name == new_role.name:

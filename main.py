@@ -24,8 +24,7 @@ sched = AsyncIOScheduler()
 def main():
     # Initialize the client
     print("Starting up...")
-    intents = discord.Intents.default()
-    intents.members = True
+    intents = discord.Intents.all()
     client = discord.Client(intents=intents)
 
     # Define event handlers for the client
@@ -82,6 +81,10 @@ def main():
     @client.event
     async def on_voice_state_update(member, before, after):
         add_activity_log(member, before, after)
+
+    @client.event
+    async def on_member_update(before, after):
+        add_activity_log(after, before.voice, after.voice)
 
     # Finally, set the bot running
     client.run(settings.BOT_TOKEN)
