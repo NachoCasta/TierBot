@@ -1,7 +1,9 @@
 import os
 import redis
 
-if not os.getenv("DISCORD_BOT_TOKEN"):
+IS_DEV = not os.getenv("DISCORD_BOT_TOKEN")
+
+if IS_DEV:
     from dotenv import load_dotenv
     load_dotenv()
 

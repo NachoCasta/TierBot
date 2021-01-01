@@ -84,7 +84,8 @@ def main():
 
     @client.event
     async def on_member_update(before, after):
-        add_activity_log(after, before.voice, after.voice)
+        if after.voice:
+            add_activity_log(after, before.voice, after.voice)
 
     # Finally, set the bot running
     client.run(settings.BOT_TOKEN)

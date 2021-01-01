@@ -116,7 +116,8 @@ def log_current_users_activity(client):
                 if not member.bot:
                     if member.voice:
                         print(f"{member} está conectado.")
-                        log = get_log(member.voice)
+                        idle = str(member.status) == "idle"
+                        log = get_log(member.voice, idle=idle)
                         if str(member) not in activity_log:
                             activity_log[str(member)] = []
                         activity_log[str(member)].append(log)
@@ -154,12 +155,12 @@ def get_activity_ranking(guild):
         last_timestamp = 0
         for log in logs:
             timestamp = log["timestamp"]
-            if last_type == "JOINED":
+            if last_type in ["JOINED", "ONLINE"]:
                 time_online = timestamp - last_timestamp
                 members[user] += time_online
             last_type = log["type"]
             last_timestamp = timestamp
-        if last_type == "JOINED":
+        if last_type in ["JOINED", "ONLINE"]:
             time_online = time() - last_timestamp
             members[user] += time_online
     return sorted(members.items(), key=lambda k: k[1], reverse=True)

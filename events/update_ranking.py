@@ -1,5 +1,6 @@
 from events.base_event import BaseEvent
 from utils import get_channel, get_activity_ranking, get_tier, TIERS
+from settings import IS_DEV
 import discord
 
 from datetime import datetime
@@ -31,8 +32,10 @@ class ExampleEvent(BaseEvent):
                     if role.name == new_role.name:
                         break
                     if role.name in TIERS and role.name != new_role.name:
-                        await user.remove_roles(role)
+                        if not IS_DEV:
+                            await user.remove_roles(role)
                         print(f"     Rol {role.name} removido a {user.name}.")
                 else:
-                    await user.add_roles(new_role)
+                    if not IS_DEV:
+                        await user.add_roles(new_role)
                     print(f"     Rol {new_role.name} agregado a {user.name}")
