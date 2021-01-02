@@ -48,7 +48,7 @@ class Wod(BaseCommand):
         for ax in axs:
             ax.xaxis.set_major_locator(locator)
             ax.xaxis.set_major_formatter(formatter)
-        ax2.legend(title="Members", loc="upper left",
+        ax2.legend(title="Member", loc="upper left",
                    title_fontsize="xx-small", fontsize="xx-small")
         plt.savefig(fname='ranking_plot')
         file_path = join(settings.BASE_DIR, "ranking_plot.png")
