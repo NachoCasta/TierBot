@@ -29,7 +29,7 @@ class Wod(BaseCommand):
         df["time_spent"] = df["time_spent"].apply(lambda k: k / (60 * 60))
         df = df.groupby([df["time"].dt.date, "name"])[
             "time_spent"].sum().unstack()
-        df.fillna(0)
+        df.fillna(0, inplace=True)
         df.plot()
         ax = plt.gca()
         for label in ax.get_xticklabels():
