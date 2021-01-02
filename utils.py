@@ -147,9 +147,9 @@ def add_activity_log(member, before, after):
             save_activity_log(member.guild.id, activity_log)
 
 
-def get_activity_ranking(guild):
+def get_activity_data(guild):
     activity_log = read_activity_log(guild)
-    members = defaultdict(int)
+    members = defaultdict(list)
     for user, logs in activity_log.items():
         last_type = "LEFT"
         last_timestamp = 0
@@ -157,12 +157,19 @@ def get_activity_ranking(guild):
             timestamp = log["timestamp"]
             if last_type in ["JOINED", "ONLINE"]:
                 time_online = timestamp - last_timestamp
-                members[user] += time_online
+                members[user].append((last_timestamp, time_online))
             last_type = log["type"]
             last_timestamp = timestamp
         if last_type in ["JOINED", "ONLINE"]:
             time_online = time() - last_timestamp
-            members[user] += time_online
+            members[user].append((last_timestamp, time_online))
+    return members
+
+
+def get_activity_ranking(guild):
+    data = get_activity_data(guild)
+    members = {user: sum(d[1] for d in user_data)
+               for user, user_data in data.items()}
     return sorted(members.items(), key=lambda k: k[1], reverse=True)
 
 

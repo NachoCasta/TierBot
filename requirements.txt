@@ -11,3 +11,5 @@ tzlocal
 websockets
 redis
 ilock
+matplotlib
+pandas

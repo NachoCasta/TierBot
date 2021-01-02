@@ -38,4 +38,4 @@ class ExampleEvent(BaseEvent):
                 else:
                     if not IS_DEV:
                         await user.add_roles(new_role)
-                    print(f"     Rol {new_role.name} agregado a {user.name}")
+                    print(f"     Rol {new_role.name} agregado a {user.name}.")
