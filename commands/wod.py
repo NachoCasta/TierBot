@@ -43,4 +43,4 @@ class Wod(BaseCommand):
         plt.savefig(fname='ranking_plot')
         file_path = join(settings.BASE_DIR, "ranking_plot.png")
         file = discord.File(file_path, filename="ranking_plot.png")
-        await message.channel.send(content="Test", file=file)
+        await message.channel.send(file=file)
