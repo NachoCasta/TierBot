@@ -31,17 +31,25 @@ class Wod(BaseCommand):
         df = df.groupby([df["time"].dt.date, "name"])[
             "time_spent"].sum().unstack()
         df.fillna(0, inplace=True)
-        df.plot()
-        ax = plt.gca()
-        for label in ax.get_xticklabels():
-            label.set_rotation(20)
-            label.set_horizontalalignment('right')
+        fig, axs = plt.subplots(2)
+        ax1, ax2 = axs
+        fig.suptitle("Wasted on Discord")
+        df.plot(ax=ax1, legend=None)
+        accumulated = df.cumsum()
+        accumulated.plot(ax=ax2)
+        for ax in axs:
+            for label in ax.get_xticklabels():
+                label.set_rotation(20)
+                label.set_horizontalalignment('right')
         plt.xlabel("Days")
         plt.ylabel("Hours")
         locator = mdates.AutoDateLocator()
         formatter = mdates.DateFormatter("%d-%m-%Y")
-        ax.xaxis.set_major_locator(locator)
-        ax.xaxis.set_major_formatter(formatter)
+        for ax in axs:
+            ax.xaxis.set_major_locator(locator)
+            ax.xaxis.set_major_formatter(formatter)
+        ax2.legend(title="Members", loc="upper left",
+                   title_fontsize="xx-small", fontsize="xx-small")
         plt.savefig(fname='ranking_plot')
         file_path = join(settings.BASE_DIR, "ranking_plot.png")
         file = discord.File(file_path, filename="ranking_plot.png")
