@@ -26,7 +26,8 @@ class Ranking(BaseCommand):
             tier = get_tier(i)
             if tier not in string:
                 string += f"**{tier}:**\n"
-            string += f"{user}: {pretty_time_delta(time)}\n"
+            name = user.split("#")[0]
+            string += f"{name}: {pretty_time_delta(time)}\n"
         if string == "":
             string = "Todavía no hay un ranking."
         await message.channel.send(string)

@@ -24,7 +24,8 @@ class Wod(BaseCommand):
         data = []
         for user, user_data in activity_data.items():
             for time, value in user_data:
-                data.append([user, pd.to_datetime(time, unit='s'), value])
+                name = user.split("#")[0]
+                data.append([name, pd.to_datetime(time, unit='s'), value])
         df = pd.DataFrame(data, columns=["name", "time", "time_spent"])
         df["time_spent"] = df["time_spent"].apply(lambda k: k / (60 * 60))
         df = df.groupby([df["time"].dt.date, "name"])[
