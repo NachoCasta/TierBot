@@ -28,7 +28,7 @@ class Wod(BaseCommand):
                 data.append([name, pd.to_datetime(time, unit='s'), value])
         df = pd.DataFrame(data, columns=["name", "time", "time_spent"])
         df["time_spent"] = df["time_spent"].apply(lambda k: k / (60 * 60))
-        df = df.groupby([df["time"].dt.date, "name"])[
+        df = df.groupby(["time", "name"])[
             "time_spent"].sum().unstack()
         df = df.fillna(0)
         df = df.cumsum().filter(items=df.sum().nlargest(10).index)
@@ -37,6 +37,7 @@ class Wod(BaseCommand):
             label.set_rotation(25)
             label.set_horizontalalignment('right')
         plt.ylabel("Hours")
+        plt.xlabel("Day")
         locator = mdates.AutoDateLocator()
         formatter = mdates.DateFormatter("%d-%m-%y")
         ax.xaxis.set_major_locator(locator)
