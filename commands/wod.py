@@ -39,7 +39,7 @@ class Wod(BaseCommand):
         plt.xlabel("Days")
         plt.ylabel("Hours")
         locator = mdates.AutoDateLocator()
-        formatter = mdates.DateFormatter("%d-%m-%Y")
+        formatter = mdates.DateFormatter("%d-%m-%y")
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(formatter)
         ax.legend(loc="upper left", title_fontsize="xx-small",
