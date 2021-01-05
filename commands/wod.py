@@ -34,9 +34,8 @@ class Wod(BaseCommand):
         df = df.cumsum().filter(items=df.sum().nlargest(10).index)
         ax = df.plot(title="Wasted on Discord")
         for label in ax.get_xticklabels():
-            label.set_rotation(20)
+            label.set_rotation(25)
             label.set_horizontalalignment('right')
-        plt.xlabel("Days")
         plt.ylabel("Hours")
         locator = mdates.AutoDateLocator()
         formatter = mdates.DateFormatter("%d-%m-%y")
