@@ -8,6 +8,7 @@ from discord import HTTPException
 from emoji import emojize
 from time import time
 from ilock import ILock
+import itertools
 
 import settings
 
@@ -154,15 +155,19 @@ def get_activity_data(guild):
         last_type = "LEFT"
         last_timestamp = 0
         for log in logs:
-            timestamp = log["timestamp"]
+            timestamp = round(log["timestamp"])
             if last_type in ["JOINED", "ONLINE"]:
                 time_online = timestamp - last_timestamp
-                members[user].append((last_timestamp, time_online))
+                members[user].append((last_timestamp, 0))
+                members[user].append((timestamp, time_online))
+            else:
+                members[user].append((timestamp, 0))
             last_type = log["type"]
             last_timestamp = timestamp
         if last_type in ["JOINED", "ONLINE"]:
-            time_online = time() - last_timestamp
-            members[user].append((last_timestamp, time_online))
+            time_online = round(time()) - last_timestamp
+            members[user].append((last_timestamp, 0))
+            members[user].append((timestamp, time_online))
     return members
 
 
@@ -200,3 +205,9 @@ def get_tier(index):
         total += tier
         if index < total:
             return TIERS[i]
+
+
+def get_pages(string, lines_per_page):
+    lines = string.split("\n")
+    args = [iter(lines)] * lines_per_page
+    return ("\n".join([e for e in t if e != None])for t in itertools.zip_longest(*args))

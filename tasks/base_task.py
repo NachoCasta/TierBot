@@ -1,6 +1,6 @@
 # Base event class
 # Do not modify!
-class BaseEvent:
+class BaseTask:
 
     def __init__(self, interval_minutes):
         # The event will run every interval_minutes minutes

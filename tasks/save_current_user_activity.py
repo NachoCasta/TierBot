@@ -1,4 +1,4 @@
-from events.base_event import BaseEvent
+from tasks.base_task import BaseTask
 from utils import read_activity_log, save_activity_log, get_log
 from settings import IS_DEV
 from time import time
@@ -11,7 +11,7 @@ from ilock import ILock
 # Your friendly example event
 # You can name this class as you like, but make sure to set BaseEvent
 # as the parent class
-class ExampleEvent(BaseEvent):
+class SaveCurrentUserActivity(BaseTask):
 
     def __init__(self):
         interval_minutes = 1  # Set the interval for this event

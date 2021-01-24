@@ -3,12 +3,20 @@ import sys
 import settings
 import discord
 import message_handler
+from os.path import join
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from events.base_event import BaseEvent
-from events import *
+from tasks import BaseTask
 from multiprocessing import Process
-from utils import add_activity_log, log_current_users_activity
+from utils import add_activity_log, log_current_users_activity, get_emoji, get_activity_ranking, pretty_time_delta, get_tier, get_activity_data, get_pages
+from discord.ext.commands import Bot
+from commands.base_command import BaseCommand
+from random import randint
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+from DiscordUtils import Pagination
 
 # Set to remember if the bot is already running, since on_ready may be called
 # more than once on reconnects
@@ -22,15 +30,11 @@ sched = AsyncIOScheduler()
 ###############################################################################
 
 def main():
-    # Initialize the client
     print("Starting up...")
     intents = discord.Intents.all()
-    client = discord.Client(intents=intents)
+    bot = Bot(command_prefix=settings.COMMAND_PREFIX, intents=intents)
 
-    # Define event handlers for the client
-    # on_ready may be called multiple times in the event of a reconnect,
-    # hence the running flag
-    @client.event
+    @bot.event
     async def on_ready():
         if this.running:
             return
@@ -40,55 +44,86 @@ def main():
         # Set the playing status
         if settings.NOW_PLAYING:
             print("Setting NP game", flush=True)
-            await client.change_presence(
+            await bot.change_presence(
                 activity=discord.Game(name=settings.NOW_PLAYING))
         print("Logged in!", flush=True)
 
         # Load all events
         print("Loading events...", flush=True)
         n_ev = 0
-        for ev in BaseEvent.__subclasses__():
+        for ev in BaseTask.__subclasses__():
             event = ev()
-            sched.add_job(event.run, 'interval', (client,),
+            sched.add_job(event.run, 'interval', (bot,),
                           minutes=event.interval_minutes)
             n_ev += 1
         sched.start()
         print(f"{n_ev} events loaded", flush=True)
 
-        log_current_users_activity(client)
+        log_current_users_activity(bot)
 
-    # The message handler for both new message and edits
-
-    async def common_handle_message(message):
-        text = message.content
-        if text.startswith(settings.COMMAND_PREFIX) and text != settings.COMMAND_PREFIX:
-            cmd_split = text[len(settings.COMMAND_PREFIX):].split()
-            try:
-                await message_handler.handle_command(cmd_split[0].lower(),
-                                                     cmd_split[1:], message, client)
-            except:
-                print("Error while handling message", flush=True)
-                raise
-
-    @client.event
-    async def on_message(message):
-        await common_handle_message(message)
-
-    @client.event
-    async def on_message_edit(before, after):
-        await common_handle_message(after)
-
-    @client.event
+    @bot.event
     async def on_voice_state_update(member, before, after):
         add_activity_log(member, before, after)
 
-    @client.event
+    @bot.event
     async def on_member_update(before, after):
         if after.voice:
             add_activity_log(after, before.voice, after.voice)
 
+    @bot.command(help="Displays the current ranking for the server members")
+    async def ranking(ctx):
+        ranking = get_activity_ranking(ctx.guild.id)
+        string = ""
+        for i, (user, time) in enumerate(ranking):
+            tier = get_tier(i)
+            if tier not in string:
+                string += f"**{tier}:**\n"
+            name = user.split("#")[0]
+            string += f"{name}: {pretty_time_delta(time)}\n"
+        if string == "":
+            string = "Todavía no hay un ranking."
+        lines_per_page = 17
+        pages = get_pages(string, lines_per_page)
+        embeds = [discord.Embed().add_field(name="Ranking", value=page)
+                  for page in pages]
+        paginator = Pagination.CustomEmbedPaginator(ctx, auto_footer=True)
+        paginator.add_reaction('⏪', "back")
+        paginator.add_reaction('⏩', "next")
+        await paginator.run(embeds)
+
+    @bot.command(help="Generates a plot showing time spent on discord by each member")
+    async def wod(ctx):
+        activity_data = get_activity_data(ctx.guild.id)
+        data = []
+        for user, user_data in activity_data.items():
+            for time, value in user_data:
+                name = user.split("#")[0]
+                data.append([name, pd.to_datetime(time, unit='s'), value])
+        df = pd.DataFrame(data, columns=["name", "time", "time_spent"])
+        df["time_spent"] = df["time_spent"].apply(lambda k: k / (60 * 60))
+        df = df.groupby(["time", "name"])[
+            "time_spent"].sum().unstack()
+        df = df.cumsum().filter(items=df.sum().nlargest(10).index)
+        df = df.interpolate(method="time")
+        ax = df.plot(title="Wasted on Discord")
+        for label in ax.get_xticklabels():
+            label.set_rotation(25)
+            label.set_horizontalalignment('right')
+        plt.ylabel("Hours")
+        plt.xlabel("Day")
+        locator = mdates.AutoDateLocator()
+        formatter = mdates.DateFormatter("%d-%m-%y")
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(formatter)
+        ax.legend(loc="upper left", title_fontsize="xx-small",
+                  fontsize="xx-small")
+        plt.savefig(fname='ranking_plot')
+        file_path = join(settings.BASE_DIR, "ranking_plot.png")
+        file = discord.File(file_path, filename="ranking_plot.png")
+        await ctx.send(file=file)
+
     # Finally, set the bot running
-    client.run(settings.BOT_TOKEN)
+    bot.run(settings.BOT_TOKEN)
 
 ###############################################################################
 

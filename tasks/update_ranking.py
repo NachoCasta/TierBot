@@ -1,4 +1,4 @@
-from events.base_event import BaseEvent
+from tasks.base_task import BaseTask
 from utils import get_channel, get_activity_ranking, get_tier, TIERS
 from settings import IS_DEV
 import discord
@@ -9,7 +9,7 @@ from datetime import datetime
 # Your friendly example event
 # You can name this class as you like, but make sure to set BaseEvent
 # as the parent class
-class ExampleEvent(BaseEvent):
+class UpdateRanking(BaseTask):
 
     def __init__(self):
         interval_minutes = 1  # Set the interval for this event
