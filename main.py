@@ -2,16 +2,13 @@ import sys
 
 import settings
 import discord
-import message_handler
 from os.path import join
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from events.base_event import BaseEvent
-from tasks import BaseTask
+from tasks.base_task import BaseTask
 from multiprocessing import Process
 from utils import add_activity_log, log_current_users_activity, get_emoji, get_activity_ranking, pretty_time_delta, get_tier, get_activity_data, get_pages
 from discord.ext.commands import Bot
-from commands.base_command import BaseCommand
 from random import randint
 import pandas as pd
 import matplotlib.pyplot as plt
