@@ -6,6 +6,7 @@ from os.path import join
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from tasks.base_task import BaseTask
+from tasks import *
 from multiprocessing import Process
 from utils import add_activity_log, log_current_users_activity, get_emoji, get_activity_ranking, pretty_time_delta, get_tier, get_activity_data, get_pages
 from discord.ext.commands import Bot
